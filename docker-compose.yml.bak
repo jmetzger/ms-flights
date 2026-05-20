@@ -1,3 +1,4 @@
+version: "3.4"
 
 services:
   ms-flights:
@@ -20,20 +21,22 @@ services:
       - ./database.env
     links:
       - ms-flights-db
-    depends_on:
-      ms-flights-db:
-        condition: service_healthy
     environment:
       - NODE_ENV=dev
       - NODE_HOT_RELOAD=1
       - NODE_LOGGER_GRANULARLEVELS=1
-      - NODE_CONFIG_DISABLE_FILE_WATCH=Y
+      - NODE_CONFIG_DISABLE_FILE_WATCH="Y"
+      #- PORT=5501 # this is overriden in shell/start-dev.sh since wait-for.sh compromises it from here
     # @see: https://docs.docker.com/compose/startup-order/
-    command: ./shell/start-dev.sh
+    command: ./shell/wait-for.sh ms-flights-db:3306 -- ./shell/start-dev.sh
 
   ms-flights-db:
     container_name: ms-flights-db
     image: mysql:5.7
+    # port mapping not needed for the app, but convenient in debugging
+    # to use some GUI tool (e.g. SequelPro) against the DB, on the host
+    ## ports:
+    ##   - 5306:3306
     ports:
       - 3306
     expose:
@@ -43,12 +46,6 @@ services:
     volumes:
       - ms_flights_db_vol:/var/lib/mysql
     restart: always
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-pverysecretsomething"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
-      start_period: 30s
 
 volumes:
   ms_flights_db_vol:
