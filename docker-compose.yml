@@ -1,4 +1,3 @@
-
 services:
   ms-flights:
     container_name: ms-flights
@@ -18,8 +17,6 @@ services:
       - 5501:5501
     env_file:
       - ./database.env
-    links:
-      - ms-flights-db
     depends_on:
       ms-flights-db:
         condition: service_healthy
@@ -28,6 +25,7 @@ services:
       - NODE_HOT_RELOAD=1
       - NODE_LOGGER_GRANULARLEVELS=1
       - NODE_CONFIG_DISABLE_FILE_WATCH=Y
+    restart: always
     # @see: https://docs.docker.com/compose/startup-order/
     command: ./shell/start-dev.sh
 
